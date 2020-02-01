@@ -1,5 +1,48 @@
+# FormatMarkdownTable PowerShell Module
 
-# Contributing
+FormatMarkdownTable is a PowerShell module which contains Format-MarkdownTableListStyle cmdlet and Format-MarkdownTableTableStyle cmdlet.
+
+## Example
+
+```powershell
+Get-ChildItem c:\ | Format-MarkdownTableListStyle Name, LastWriteTime, Mode
+```
+
+This example returns a summary of the child items in C drive, and markdown text will be copied to the clipboard. Each property is displayed on a separate row.
+
+```powershell
+Get-ChildItem c:\ | Format-MarkdownTable Name, LastWriteTime, Mode -FormatTableStyle
+```
+
+This example returns a summary of the child items in C drive, and markdown text will be copied to the clipboard. Each property is displayed on a separate col.
+
+## Alias
+
+You can also refer to Format-MarkdownTableListStyle by its built-in alias, FML.
+
+You can also refer to Format-MarkdownTableTableStyle by its built-in alias, FMT.
+
+## Switch
+
+```powershell
+Get-ChildItem c:\ | fml Name, LastWriteTime, Mode -HideStandardOutput
+```
+
+HideStandardOutput indicates that the cmdlet hides the standard output.
+
+```powershell
+Get-ChildItem c:\ | fml Name, LastWriteTime, Mode -HideStandardOutput -ShowMarkdown
+```
+
+ShowMarkdown indicates that the cmdlet outputs the markdown text to the console.
+
+```powershell
+Get-ChildItem c:\ | fml Name, LastWriteTime, Mode -HideStandardOutput -ShowMarkdown -DoNotCopyToClipboard
+```
+
+DoNotCopyToClipboard indicates the the cmdlet does not copy the markdown text to the clipboard.
+
+## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
