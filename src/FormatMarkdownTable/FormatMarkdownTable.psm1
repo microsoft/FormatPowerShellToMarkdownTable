@@ -64,36 +64,6 @@ function Format-MarkdownTableListStyle {
     )
     
     Begin {
-        ## Internal Function
-
-        function GetDefaultDisplayProperty([object]$InputObject) {
-            try {
-                if ($null -eq $InputObject) {
-                    return @("*")
-                }
-    
-                $DataType = ($InputObject | Get-Member)[0].TypeName
-    
-                if ($DataType.StartsWith("Selected.")) {
-                    return @("*")
-                }            
-                elseif ($DataType.StartsWith("Deserialized.")) {
-                    $DataType = $DataType.Trim("Deserialized.")
-                }
-    
-                $FormatData = Get-FormatData -TypeName $DataType -ErrorAction SilentlyContinue
-    
-                if ($null -eq $FormatData) {
-                    return @("*")
-                }
-    
-                return $FormatData.FormatViewDefinition.Control.Rows.Columns.DisplayEntry.Value
-            }
-            catch {
-                return @("*")
-            }
-        }
-
         if ($null -ne $InputObject -and $InputObject.GetType().BaseType -eq [System.Array]) {
             Write-Error "InputObject must not be System.Array. Don't use InputObject, but use the pipeline to pass the array object."
             $NeedToReturn = $true
@@ -233,16 +203,16 @@ function Format-MarkdownTableTableStyle {
     Begin {
         ## Internal Function
 
-        function GetDefaultDisplayProperty([object]$InputObject) {
+        function UseAllProperty([object]$InputObject) {
             try {
                 if ($null -eq $InputObject) {
-                    return @("*")
+                    return $true
                 }
     
                 $DataType = ($InputObject | Get-Member)[0].TypeName
     
                 if ($DataType.StartsWith("Selected.")) {
-                    return @("*")
+                    return $true
                 }            
                 elseif ($DataType.StartsWith("Deserialized.")) {
                     $DataType = $DataType.Trim("Deserialized.")
@@ -251,16 +221,16 @@ function Format-MarkdownTableTableStyle {
                 $FormatData = Get-FormatData -TypeName $DataType -ErrorAction SilentlyContinue
     
                 if ($null -eq $FormatData) {
-                    return @("*")
+                    return $true
                 }
     
-                return $FormatData.FormatViewDefinition.Control.Rows.Columns.DisplayEntry.Value
+                return $false
             }
             catch {
-                return @("*")
+                return $true
             }
         }
-
+        
         if ($null -ne $InputObject -and $InputObject.GetType().BaseType -eq [System.Array]) {
             Write-Error "InputObject must not be System.Array. Don't use InputObject, but use the pipeline to pass the array object."
             $NeedToReturn = $true
@@ -283,21 +253,68 @@ function Format-MarkdownTableTableStyle {
         $CurrentObject = $null
 
         if ($_ -eq $null) {
-            if (($Property.Length -eq 0) -or ($Property.Length -eq 1 -and $Property[0] -eq "")) {
-                $Property = GetDefaultDisplayProperty($InputObject)
-            }
-
-            $CurrentObject = $InputObject | Select-Object -Property $Property
+            $CurrentObject = $InputObject
         }
         else {
-            if (($Property.Length -eq 0) -or ($Property.Length -eq 1 -and $Property[0] -eq "")) {
-                $Property = GetDefaultDisplayProperty($_)
-            }
-
-            $CurrentObject = $_ | Select-Object -Property $Property
+            $CurrentObject = $_
         }
 
-        $Props = $CurrentObject | Get-Member -Name $Property -MemberType Property, NoteProperty
+        if (($Property.Length -eq 0) -or ($Property.Length -eq 1 -and $Property[0] -eq "")) {
+            if (UseAllProperty($CurrentObject)) {
+                $Property = @("*")
+                $CurrentObject = $CurrentObject | Select-Object -Property $Property
+                $Props = $CurrentObject | Get-Member -Name $Property -MemberType Property, NoteProperty
+            }
+            else {
+                $DataType = ($CurrentObject | Get-Member)[0].TypeName
+        
+                if ($DataType.StartsWith("Deserialized.")) {
+                    $DataType = $DataType.Trim("Deserialized.")
+                }
+        
+                $FormatData = Get-FormatData -TypeName $DataType -ErrorAction SilentlyContinue
+                
+                $TempPSObject = New-Object PSCustomObject
+
+                $TempHeaderList = New-Object System.Collections.Generic.List[string]
+
+                for ($i = 0; $i -lt $FormatData.FormatViewDefinition.Control.Headers.Count; $i++) {
+                    $HeaderName = $FormatData.FormatViewDefinition.Control.Headers[$i].Label
+
+                    if ($null -eq $HeaderName -or $HeaderName -eq "") {
+                        $HeaderName = $FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.Value
+                    }
+
+                    $TempSelectedObject = $null
+
+                    if ($FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.ValueType -eq "ScriptBlock") {
+                        $TempSelectedObject = $CurrentObject | Select-Object @{
+                            n = $HeaderName;
+                            e = ([scriptblock]::Create($FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.Value))
+                        }
+                    }
+                    else {
+                        $PropertyName = $FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.Value
+
+                        $TempSelectedObject = $CurrentObject | Select-Object @{
+                            n = $HeaderName;
+                            e = {$_.$($PropertyName)}
+                        }
+                    }
+
+                    $Value = $TempSelectedObject.$($HeaderName)
+                    $TempPSObject | Add-Member -MemberType NoteProperty $HeaderName -Value $Value
+                    $TempHeaderList.Add($HeaderName)
+                }
+                
+                $CurrentObject = $TempPSObject | Select-Object -Property $TempHeaderList
+                $Props = $CurrentObject | Get-Member -Name $TempHeaderList -MemberType Property, NoteProperty
+            }
+        }
+        else {
+            $CurrentObject = $CurrentObject | Select-Object -Property $Property
+            $Props = $CurrentObject | Get-Member -Name $Property -MemberType Property, NoteProperty
+        }
 
         foreach ($Prop in $Props) {
             if ($HeadersForFormatTableStyle.Contains($Prop.Name) -eq $false) {
