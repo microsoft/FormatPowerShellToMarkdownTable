@@ -17,7 +17,7 @@ steps:
     Contents: |
       *.psm1
       *.psd1
-    TargetFolder: 
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
     OverWrite: true
 
 - task: PublishBuildArtifacts@1
