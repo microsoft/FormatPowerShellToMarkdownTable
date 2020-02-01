@@ -17,7 +17,7 @@ steps:
     Contents: |
       *.psm1
       *.psd1
-    TargetFolder: 'FormatMarkdownTable'
+    TargetFolder: 
     OverWrite: true
 
 - task: PublishBuildArtifacts@1
