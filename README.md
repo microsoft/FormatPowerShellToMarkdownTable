@@ -2,6 +2,14 @@
 
 FormatMarkdownTable is a PowerShell module which contains Format-MarkdownTableListStyle cmdlet and Format-MarkdownTableTableStyle cmdlet.
 
+## Installing the FormatMarkdownTable PowerShell Module
+
+The module is published on the PowerShell Gallery.
+
+```powershell
+Install-Module formatmarkdowntable
+```
+
 ## Example
 
 ```powershell
