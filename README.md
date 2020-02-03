@@ -7,7 +7,7 @@ FormatMarkdownTable is a PowerShell module which contains Format-MarkdownTableLi
 The module is published on the PowerShell Gallery.
 
 ```powershell
-Install-Module formatmarkdowntable
+Install-Module FormatMarkdownTable
 ```
 
 ## Example
@@ -19,7 +19,7 @@ Get-ChildItem c:\ | Format-MarkdownTableListStyle Name, LastWriteTime, Mode
 This example returns a summary of the child items in C drive, and markdown text will be copied to the clipboard. Each property is displayed on a separate row.
 
 ```powershell
-Get-ChildItem c:\ | Format-MarkdownTable Name, LastWriteTime, Mode -FormatTableStyle
+Get-ChildItem c:\ | Format-MarkdownTableTableStyle Name, LastWriteTime, Mode
 ```
 
 This example returns a summary of the child items in C drive, and markdown text will be copied to the clipboard. Each property is displayed on a separate col.
@@ -29,6 +29,8 @@ This example returns a summary of the child items in C drive, and markdown text 
 You can also refer to Format-MarkdownTableListStyle by its built-in alias, FML.
 
 You can also refer to Format-MarkdownTableTableStyle by its built-in alias, FMT.
+
+If FML and FMT are not recognized, try `Import-Module FormatMarkdownTable` once to load the module explicitly.
 
 ## Switch
 
