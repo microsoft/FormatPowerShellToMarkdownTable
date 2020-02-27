@@ -215,7 +215,7 @@ function Format-MarkdownTableTableStyle {
                     return $true
                 }            
                 elseif ($DataType.StartsWith("Deserialized.")) {
-                    $DataType = $DataType.Trim("Deserialized.")
+                    $DataType = $DataType.Remove(0, 13)
                 }
     
                 $FormatData = Get-FormatData -TypeName $DataType -ErrorAction SilentlyContinue
@@ -269,7 +269,7 @@ function Format-MarkdownTableTableStyle {
                 $DataType = ($CurrentObject | Get-Member)[0].TypeName
         
                 if ($DataType.StartsWith("Deserialized.")) {
-                    $DataType = $DataType.Trim("Deserialized.")
+                    $DataType = $DataType.Remove(0, 13)
                 }
         
                 $FormatData = Get-FormatData -TypeName $DataType -ErrorAction SilentlyContinue
