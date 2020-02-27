@@ -122,7 +122,7 @@ function Format-MarkdownTableListStyle {
         if ($NeedToReturn) { return }
 
         $ResultForConsole = $Result
-        $Result = "**" + $LastCommandLine.Replace("*", "\*") + "**`r`n`r`n" + $Result
+        $Result = "**" + (EscapeMarkdown($LastCommandLine)) + "**`r`n`r`n" + $Result
 
         if ($HideStandardOutput.IsPresent -eq $false) {
             $TempOutputList | Format-List *
@@ -356,7 +356,7 @@ function Format-MarkdownTableTableStyle {
         $Result = $HeaderRow + "`r`n" + $SeparatorRow + "`r`n" + $ContentRow
 
         $ResultForConsole = $Result
-        $Result = "**" + $LastCommandLine.Replace("*", "\*") + "**`r`n`r`n" + $Result
+        $Result = "**" + (EscapeMarkdown($LastCommandLine)) + "**`r`n`r`n" + $Result
 
         if ($HideStandardOutput.IsPresent -eq $false) {
             $TempOutputList | Format-Table * -AutoSize
@@ -392,7 +392,7 @@ function EscapeMarkdown([object]$InputObject) {
         $Temp = ""
     }
 
-    return $Temp.Replace("*", "\*")
+    return $Temp.Replace("\", "\\").Replace("*", "\*").Replace("_", "\_").Replace("``", "\``").Replace("$", "\$").Replace("|", "\|")
 }
 
 Export-ModuleMember -Function Format-MarkdownTableListStyle, Format-MarkdownTableTableStyle -Alias *
