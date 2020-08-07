@@ -87,14 +87,14 @@ function Format-MarkdownTableListStyle {
                 $Property = @("*")
             }
 
-            $CurrentObject = $InputObject | Select-Object -Property $Property
+            $CurrentObject = $InputObject | Select-Object -Property $Property -ErrorAction SilentlyContinue
         }
         else {
             if (($Property.Length -eq 0) -or ($Property.Length -eq 1 -and $Property[0] -eq "")) {
                 $Property = @("*")
             }
 
-            $CurrentObject = $_ | Select-Object -Property $Property
+            $CurrentObject = $_ | Select-Object -Property $Property -ErrorAction SilentlyContinue
         }
 
         $Props = $CurrentObject | Get-Member -Name $Property -MemberType Property, NoteProperty
@@ -108,7 +108,7 @@ function Format-MarkdownTableListStyle {
             $EscapedPropName = EscapeMarkdown($Prop.Name)
             $EscapedPropValue = EscapeMarkdown($CurrentObject.($($Prop.Name)))
             $Output += "|$EscapedPropName|$EscapedPropValue`r`n"
-            $TempOutput | Add-Member -MemberType NoteProperty $Prop.Name -Value $CurrentObject.($($Prop.Name))
+            $TempOutput | Add-Member -MemberType NoteProperty $Prop.Name -Value $CurrentObject.($($Prop.Name)) -Force
         }
 
         $Output += "`r`n"
@@ -312,7 +312,7 @@ function Format-MarkdownTableTableStyle {
             }
         }
         else {
-            $CurrentObject = $CurrentObject | Select-Object -Property $Property
+            $CurrentObject = $CurrentObject | Select-Object -Property $Property -ErrorAction SilentlyContinue
             $Props = $CurrentObject | Get-Member -Name $Property -MemberType Property, NoteProperty
         }
 
