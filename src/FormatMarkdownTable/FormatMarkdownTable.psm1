@@ -82,40 +82,56 @@ function Format-MarkdownTableListStyle {
 
         $CurrentObject = $null
 
-        if ($_ -eq $null) {
-            if (($Property.Length -eq 0) -or ($Property.Length -eq 1 -and $Property[0] -eq "")) {
-                $Property = @("*")
-            }
+        if (($Property.Length -eq 0) -or ($Property.Length -eq 1 -and $Property[0] -eq "")) {
+            $Property = @("*")
+        }
 
-            $CurrentObject = $InputObject | Select-Object -Property $Property -ErrorAction SilentlyContinue
+        if ($_ -eq $null) {
+            $CurrentObject = $InputObject
         }
         else {
-            if (($Property.Length -eq 0) -or ($Property.Length -eq 1 -and $Property[0] -eq "")) {
-                $Property = @("*")
+            $CurrentObject = $_
+        }
+
+        if ($CurrentObject.GetType().Name.ToLower() -eq "string") {
+            # CurrentObject is a simple String object
+            # Display like a FT style
+
+            $Output = ""
+
+            if ($Result -eq "") {
+                $Output += "||`r`n"
+                $Output += "|:--|`r`n"
             }
+            
+            $Output += "|$(EscapeMarkdown($CurrentObject))|`r`n"
 
-            $CurrentObject = $_ | Select-Object -Property $Property -ErrorAction SilentlyContinue
+            $Result += $Output
+
+            $TempOutputList.Add($CurrentObject)
         }
-
-        $Props = $CurrentObject | Get-Member -Name $Property -MemberType Property, NoteProperty
-
-        $Output = "|Property|Value|`r`n"
-        $Output += "|:--|:--|`r`n"
-
-        $TempOutput = New-Object PSCustomObject
-
-        foreach ($Prop in $Props) {
-            $EscapedPropName = EscapeMarkdown($Prop.Name)
-            $EscapedPropValue = EscapeMarkdown($CurrentObject.($($Prop.Name)))
-            $Output += "|$EscapedPropName|$EscapedPropValue`r`n"
-            $TempOutput | Add-Member -MemberType NoteProperty $Prop.Name -Value $CurrentObject.($($Prop.Name)) -Force
+        else {
+            $CurrentObject = $CurrentObject | Select-Object -Property $Property -ErrorAction SilentlyContinue
+            $Props = $CurrentObject | Get-Member -Name $Property -MemberType Property, NoteProperty
+    
+            $Output = "|Property|Value|`r`n"
+            $Output += "|:--|:--|`r`n"
+    
+            $TempOutput = New-Object PSCustomObject
+    
+            foreach ($Prop in $Props) {
+                $EscapedPropName = EscapeMarkdown($Prop.Name)
+                $EscapedPropValue = EscapeMarkdown($CurrentObject.($($Prop.Name)))
+                $Output += "|$EscapedPropName|$EscapedPropValue`r`n"
+                $TempOutput | Add-Member -MemberType NoteProperty $Prop.Name -Value $CurrentObject.($($Prop.Name)) -Force
+            }
+    
+            $Output += "`r`n"
+    
+            $Result += $Output
+    
+            $TempOutputList.Add($TempOutput)
         }
-
-        $Output += "`r`n"
-
-        $Result += $Output
-
-        $TempOutputList.Add($TempOutput)
     }
     
     End {
@@ -259,7 +275,11 @@ function Format-MarkdownTableTableStyle {
             $CurrentObject = $_
         }
 
-        if (($Property.Length -eq 0) -or ($Property.Length -eq 1 -and $Property[0] -eq "")) {
+        if ($CurrentObject.GetType().Name.ToLower() -eq "string") {
+            # CurrentObject is a simple String object
+            $Props = @("")
+        }
+        elseif (($Property.Length -eq 0) -or ($Property.Length -eq 1 -and $Property[0] -eq "")) {
             if (UseAllProperty($CurrentObject)) {
                 $Property = @("*")
                 $CurrentObject = $CurrentObject | Select-Object -Property $Property
@@ -342,10 +362,18 @@ function Format-MarkdownTableTableStyle {
             $TempOutput = New-Object PSCustomObject
             $ContentRow += "|"
 
-            foreach ($Prop in $HeadersForFormatTableStyle) {
-                $ContentRow += "$(EscapeMarkdown($Content.($($Prop))))|"
-
-                $TempOutput | Add-Member -MemberType NoteProperty $Prop -Value $Content.($($Prop))
+            if ($HeadersForFormatTableStyle.Count -eq "1" -and $HeadersForFormatTableStyle[0] -eq "") {
+                # Content is an array of simple data type, like String.
+                $ContentRow += "$(EscapeMarkdown($Content))|"
+                $TempOutput = $null
+                $TempOutput = $Content
+            }
+            else {
+                foreach ($Prop in $HeadersForFormatTableStyle) {
+                    $ContentRow += "$(EscapeMarkdown($Content.($($Prop))))|"
+    
+                    $TempOutput | Add-Member -MemberType NoteProperty $Prop -Value $Content.($($Prop))
+                }
             }
             
             $ContentRow += "`r`n"
