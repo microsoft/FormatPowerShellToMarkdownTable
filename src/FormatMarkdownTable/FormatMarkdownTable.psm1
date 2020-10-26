@@ -420,7 +420,7 @@ function EscapeMarkdown([object]$InputObject) {
         $Temp = ""
     }
 
-    return $Temp.Replace("\", "\\").Replace("*", "\*").Replace("_", "\_").Replace("``", "\``").Replace("$", "\$").Replace("|", "\|")
+    return $Temp.Replace("\", "\\").Replace("*", "\*").Replace("_", "\_").Replace("``", "\``").Replace("$", "\$").Replace("|", "\|").Replace([System.Environment]::NewLine, "<br />")
 }
 
 Export-ModuleMember -Function Format-MarkdownTableListStyle, Format-MarkdownTableTableStyle -Alias *
