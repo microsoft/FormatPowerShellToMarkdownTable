@@ -298,35 +298,54 @@ function Format-MarkdownTableTableStyle {
 
                 $TempHeaderList = New-Object System.Collections.Generic.List[string]
 
-                for ($i = 0; $i -lt $FormatData.FormatViewDefinition.Control.Headers.Count; $i++) {
-                    $HeaderName = $FormatData.FormatViewDefinition.Control.Headers[$i].Label
-
-                    if ($null -eq $HeaderName -or $HeaderName -eq "") {
-                        $HeaderName = $FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.Value
-                    }
-
-                    $TempSelectedObject = $null
-
-                    if ($FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.ValueType -eq "ScriptBlock") {
-                        $TempSelectedObject = $CurrentObject | Select-Object @{
-                            n = $HeaderName;
-                            e = ([scriptblock]::Create($FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.Value))
+                if ($FormatData.FormatViewDefinition.Control.Headers)
+                {
+                    for ($i = 0; $i -lt $FormatData.FormatViewDefinition.Control.Headers.Count; $i++) {
+                        $HeaderName = $FormatData.FormatViewDefinition.Control.Headers[$i].Label
+    
+                        if ($null -eq $HeaderName -or $HeaderName -eq "") {
+                            $HeaderName = $FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.Value
                         }
-                    }
-                    else {
-                        $PropertyName = $FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.Value
-
-                        $TempSelectedObject = $CurrentObject | Select-Object @{
-                            n = $HeaderName;
-                            e = {$_.$($PropertyName)}
+    
+                        $TempSelectedObject = $null
+    
+                        if ($FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.ValueType -eq "ScriptBlock") {
+                            $TempSelectedObject = $CurrentObject | Select-Object @{
+                                n = $HeaderName;
+                                e = ([scriptblock]::Create($FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.Value))
+                            }
                         }
+                        else {
+                            $PropertyName = $FormatData.FormatViewDefinition.Control.Rows.Columns[$i].DisplayEntry.Value
+    
+                            $TempSelectedObject = $CurrentObject | Select-Object @{
+                                n = $HeaderName;
+                                e = {$_.$($PropertyName)}
+                            }
+                        }
+    
+                        $Value = $TempSelectedObject.$($HeaderName)
+                        $TempPSObject | Add-Member -MemberType NoteProperty $HeaderName -Value $Value
+                        $TempHeaderList.Add($HeaderName)
                     }
-
-                    $Value = $TempSelectedObject.$($HeaderName)
-                    $TempPSObject | Add-Member -MemberType NoteProperty $HeaderName -Value $Value
-                    $TempHeaderList.Add($HeaderName)
                 }
-                
+                else {
+                    for ($i = 0; $i -lt $FormatData.FormatViewDefinition.Control.Entries.Items.Count; $i++) {
+                        $HeaderName = $FormatData.FormatViewDefinition.Control.Entries.Items[$i].DisplayEntry.Value
+
+                        $TempSelectedObject = $null
+
+                        $TempSelectedObject = $CurrentObject | Select-Object @{
+                            n = $HeaderName;
+                            e = {$_.$($HeaderName)}
+                        }
+
+                        $Value = $TempSelectedObject.$($HeaderName)
+                        $TempPSObject | Add-Member -MemberType NoteProperty $HeaderName -Value $Value
+                        $TempHeaderList.Add($HeaderName)
+                    }
+                }
+
                 $CurrentObject = $TempPSObject | Select-Object -Property $TempHeaderList
                 $Props = $CurrentObject | Get-Member -Name $TempHeaderList -MemberType Property, NoteProperty
             }
