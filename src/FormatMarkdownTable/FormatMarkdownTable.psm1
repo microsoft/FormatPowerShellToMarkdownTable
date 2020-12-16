@@ -429,7 +429,7 @@ function EscapeMarkdown([object]$InputObject) {
     elseif ($InputObject.GetType().BaseType -eq [System.Array]) {
         $Temp = "{" + [System.String]::Join(", ", $InputObject) + "}"
     }
-    elseif ($InputObject.GetType() -eq [System.Collections.ArrayList]) {
+    elseif ($InputObject.GetType() -eq [System.Collections.ArrayList] -or $InputObject.GetType().ToString().StartsWith("System.Collections.Generic.List")) {
         $Temp = "{" + [System.String]::Join(", ", $InputObject.ToArray()) + "}"
     }
     elseif (Get-Member -InputObject $InputObject -Name ToString -MemberType Method) {
@@ -439,7 +439,7 @@ function EscapeMarkdown([object]$InputObject) {
         $Temp = ""
     }
 
-    return $Temp.Replace("\", "\\").Replace("*", "\*").Replace("_", "\_").Replace("``", "\``").Replace("$", "\$").Replace("|", "\|").Replace([System.Environment]::NewLine, "<br />")
+    return $Temp.Replace("\", "\\").Replace("*", "\*").Replace("_", "\_").Replace("``", "\``").Replace("$", "\$").Replace("|", "\|").Replace("<", "\<").Replace(">", "\>").Replace([System.Environment]::NewLine, "<br />")
 }
 
 Export-ModuleMember -Function Format-MarkdownTableListStyle, Format-MarkdownTableTableStyle -Alias *
